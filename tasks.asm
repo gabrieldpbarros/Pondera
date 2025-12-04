@@ -1,5 +1,5 @@
 .data
-	buffer:	.space 100
+	buffer:	.space 250
 
 .text
 .globl write_tasks
