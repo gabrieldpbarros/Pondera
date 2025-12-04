@@ -1,5 +1,8 @@
 .data
 	buffer:	.space 250
+	tarefa:	.asciiz "Tarefa "
+	dois_pontos:	.asciiz ": "
+	breakline:	.asciiz "\n"
 
 .text
 .globl write_tasks
@@ -13,8 +16,8 @@
 
 
 write_tasks:
-	# Definimos um contador para a escrita das tasks
-	li $t0, 0
+	# Definimos um contador para a escrita das tasks (começamos em 1 para facilitar a impressão mais abaixo)
+	li $t0, 1
 
 	# Abre o arquivo
 	li $v0, 13
@@ -31,7 +34,18 @@ write_tasks:
 	move $s0, $v0 	# salvamos o file descriptor
 	
 writing_loop:
-	beq $t0, 4, close
+	beq $t0, 5, close
+	
+	# Imprime um marcador visual que facilita a interação
+	li $v0, 4
+	la $a0, tarefa
+	syscall
+	li $v0, 1
+	la $a0, ($t0)
+	syscall
+	li $v0, 4
+	la $a0, dois_pontos
+	syscall
 	
 	# sobrescrevi a escrita do buffer para ler a entrada do usuario primeiro
 	li $v0, 8

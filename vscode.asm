@@ -9,8 +9,8 @@ preto: .word 0x00000000
 cinza: .word 0x00202020
 
 .text
-.globl main
-main:
+.globl bmp1
+bmp1:
     lw $s0, Endereço_Base   # Endereço base do heap
     lw $s1, Tam_Pixel       # Tamanho do pixel
     lw $s2, Largura_Display # Largura da tela
