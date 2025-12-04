@@ -1,11 +1,16 @@
 .data
-filename: .asciiz "posts.txt"
+posts_filename: .asciiz "posts.txt"
+tasks_filename:	.asciiz "tasks.txt"
+flag:	.word 0
 
 .text
 .globl main
 main:
-    la $a0, filename
-    jal load_posts
+	la $a0, tasks_filename
+	jal write_tasks
 
-    li $v0, 10
-    syscall
+    	la $a0, posts_filename
+    	jal load_posts
+
+    	li $v0, 10
+    	syscall
