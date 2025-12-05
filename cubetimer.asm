@@ -1,69 +1,373 @@
 .data
-Endereço_Base: .word 0x10040000 # Endereço base do bitmap como heap
-Tam_Pixel:   .word 4 # Cada pixel é composto por 4 bits
-Largura_Display: .word 32 # 32 bits de largura
+Endereço_Base:   .word 0x10010000 # Endereço base do bitmap como heap
+Tam_Pixel:       .word 4 # Cada pixel é composto por 4 bits
+Largura_Display: .word 64 # 64 bits de largura
 
 .text
 .globl bmp2
 bmp2:
-    lw $s0, Endereço_Base   # Endereço base do heap
+    lw $s0, Endereço_Base   # Endereço base do static
     lw $s1, Tam_Pixel       # Tamanho do pixel
     lw $s2, Largura_Display # Largura da tela
-    li $s4, 0               # Contagem pras colunas cinzas
+    li $s4, 0               # Contagem pras colunas
     li $s5, 32              # Limite da tela
 
 # ------------------ Pinta todo o quadro com dark blue -----------------------------------
-LOOP_Y_PREENCHIMENTO:
+Loop_Y_Preenchimento:
     bge $s4, $s5, Linhas_Coloridas # Se Y >= 32, segue para as linhas
-    li $s6, 0                      # $s6 = X (Contador da Coluna) - Reinicia em 0
+    li $s6, 0                      # Contador da coluna que reinicia em 0 para cada nova linha
     
-    # LOOP_INTERNO_X (Percorre todos os pixels da linha Y)
-    LOOP_X_PREENCHIMENTO:
-        bge $s6, $s2, FIM_LOOP_X_PREENCHIMENTO # Se X >= 32 ($s2), termina a linha
+    # Loop que percorre todos os pixels da linha Y
+    Loop_X_Preenchimento:
+        bge $s6, $s2, Fim_Loop_X_Preenchimento # Se chegou no fim da linha, pula pra próxima
 
-        # 2. CÁLCULO DO ENDEREÇO DE MEMÓRIA (Fórmula Chave)
+        # Endereço de memória
         
-        # Offset = (Y * Largura) + X
-        mul $t0, $s4, $s2       # $t0 = Y * Largura
-        add $t0, $t0, $s6       # $t0 = (Y * Largura) + X (Offset em Unidades)
+        # Offset = (Y * largura) + X
+        mul $t0, $s4, $s2       # $t0 = Y * largura
+        add $t0, $t0, $s6       # $t0 = (Y * largura) + X (Offset em unidades)
 
-        # Endereço_Final = BaseAddress + Offset * Tamanho do Pixel
-        mul $t0, $t0, $s1       # $t0 = Offset * Tamanho do Pixel (Offset em Bytes)
-        add $t1, $s0, $t0       # $t1 = Endereço Base + Offset em Bytes
+        # Endereço_Final = BaseAddress + Offset * tamanho do pixel
+        mul $t0, $t0, $s1       # $t0 = Offset * tamanho do pixel (Offset em bytes)
+        add $t1, $s0, $t0       # $t1 = endereço base + Offset em bytes
 
-        # 3. DESENHO (STORE WORD)
+        # Desenho em si
         li $t8, 0x00005168
         sw $t8, 0($t1)          # sw Cor ($t8), 0(Endereco_Final)
 
-        # Incrementa X e continua o Loop Interno
-        addi $s6, $s6, 1        # X = X + 1
-        j LOOP_X_PREENCHIMENTO
+        # Incrementa x e continua o loop interno
+        addi $s6, $s6, 1        # X += 1
+        j Loop_X_Preenchimento
     
-    FIM_LOOP_X_PREENCHIMENTO:
-    # Incrementa Y e continua o Loop Externo
-    addi $s4, $s4, 1            # Y = Y + 1
-    j LOOP_Y_PREENCHIMENTO
-# ------------------ Divisão da parte preta e cinza escuro -------------------------
+    Fim_Loop_X_Preenchimento:
+    # Incrementa Y e continua o loop interno
+    addi $s4, $s4, 1            # Y += 1
+    j Loop_Y_Preenchimento
+# ---------------------- Pinta todo o quadro com dark blue -------------------------------
 
-# ------------------ Linhas coloridas ----------------------------------------------
+# ------------------------------ Linhas coloridas ----------------------------------------
 
 Linhas_Coloridas: 
     
-    li $a0, 17             # Y_ALTURA = 17
-    li $a1, 2              # X_INICIO = 2
-    li $a2, 2              # X_FIM = 2
-    li $a3, 0x00D3D3D3     # Cor cinza claro
-    jal Desenha_Linha_Horizontal           # Chama a sub-rotina de desenho
+# -------------------------- Chamada linhas horizontais ----------------------------------
     
-    li $a0, 6               # X_FIXO = 5 (Coluna)
-    li $a1, 10              # Y_INICIO = 10
-    li $a2, 12              # Y_FIM = 25
-    li $a3, 0xFFFFFFFF      # COR = Branco
-    jal DrawVerticalLine    # Chama a sub-rotina
+    li $a0, 17                   # Y_ALTURA = 17
+    li $a1, 2                    # X_INICIO = 2
+    li $a2, 8                    # X_FIM = 8
+    li $a3, 0x00D3D3D3           # Cor cinza claro
+    jal Desenha_Linha_Horizontal # Chama a sub-rotina de desenho
     
+    li $a0, 19                   # Y_ALTURA = 19
+    li $a1, 2                    # X_INICIO = 2
+    li $a2, 8                    # X_FIM = 8
+    li $a3, 0x00D3D3D3           # Cor cinza claro
+    jal Desenha_Linha_Horizontal # Chama a sub-rotina de desenho
+    
+    # Assim por diante
+    li $a0, 19            
+    li $a1, 2              
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 21             
+    li $a1, 2             
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 23            
+    li $a1, 2              
+    li $a2, 8             
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal         
+    
+    li $a0, 25            
+    li $a1, 2              
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 27             
+    li $a1, 2              
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal        
+    
+    li $a0, 29             
+    li $a1, 2              
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 11             
+    li $a1, 18              
+    li $a2, 21              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal        
+    
+    li $a0, 19            
+    li $a1, 24              
+    li $a2, 24             
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 19             
+    li $a1, 34              
+    li $a2, 37             
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 11            
+    li $a1, 34             
+    li $a2, 37              
+    li $a3, 0x00D3D3D3    
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 11             
+    li $a1, 41              
+    li $a2, 44              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal         
+    
+    li $a0, 15             
+    li $a1, 41              
+    li $a2, 44              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 19            
+    li $a1, 41              
+    li $a2, 44              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 0             
+    li $a1, 0              
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 1             
+    li $a1, 0             
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 2             
+    li $a1, 0              
+    li $a2, 63             
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal         
+    
+    li $a0, 3             
+    li $a1, 0             
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 4             
+    li $a1, 0              
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 5             
+    li $a1, 0              
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 6             
+    li $a1, 0              
+    li $a2, 63              
+    li $a3, 0x00003451    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 4            
+    li $a1, 16            
+    li $a2, 56             
+    li $a3, 0x00D3D3D3    
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 14            
+    li $a1, 6              
+    li $a2, 8              
+    li $a3, 0x005353ec     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 12             
+    li $a1, 6             
+    li $a2, 8             
+    li $a3, 0x005353ec     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 10            
+    li $a1, 6              
+    li $a2, 8              
+    li $a3, 0x005353ec     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 10             
+    li $a1, 2              
+    li $a2, 4              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 12             
+    li $a1, 2              
+    li $a2, 4              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal          
+    
+    li $a0, 14            
+    li $a1, 2             
+    li $a2, 4              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 8             
+    li $a1, 2              
+    li $a2, 8              
+    li $a3, 0x00D3D3D3     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 5             
+    li $a1, 0              
+    li $a2, 2              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal         
+    
+    li $a0, 6             
+    li $a1, 0              
+    li $a2, 2              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 5             
+    li $a1, 7              
+    li $a2, 9              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 6             
+    li $a1, 7              
+    li $a2, 9              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 0             
+    li $a1, 7             
+    li $a2, 9              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 1             
+    li $a1, 7             
+    li $a2, 9              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 0             
+    li $a1, 0              
+    li $a2, 2              
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 1             
+    li $a1, 0              
+    li $a2, 2             
+    li $a3, 0x00BB8800     
+    jal Desenha_Linha_Horizontal           
+    
+    li $a0, 19             
+    li $a1, 47             
+    li $a2, 50           
+    li $a3, 0x0000FF00     
+    jal Desenha_Linha_Horizontal          
+# --------------------------- Linhas Horizontais ------------------------------------    
+
+# ------------------------ Chamada linhas verticais ---------------------------------
+    li $a0, 22              # X_FIXO = 22 (Coluna)
+    li $a1, 12              # Y_INICIO = 12
+    li $a2, 14              # Y_FIM = 14
+    li $a3, 0x00D3D3D3      # Cor cinza claro
+    jal Desenha_Linha_Vertical    # Chama a sub-rotina de desenho
+    
+    li $a0, 22              # X_FIXO = 22 (Coluna)
+    li $a1, 16              # Y_INICIO = 16
+    li $a2, 18              # Y_FIM = 18
+    li $a3, 0x00D3D3D3      # Cor cinza claro
+    jal Desenha_Linha_Vertical    # Chama a sub-rotina de desenho
+    
+# Assim por diante
+    li $a0, 31               
+    li $a1, 12              
+    li $a2, 14              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 31
+    li $a1, 16              
+    li $a2, 18              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 33               
+    li $a1, 12              
+    li $a2, 14             
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 33              
+    li $a1, 16              
+    li $a2, 18              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 38               
+    li $a1, 12              
+    li $a2, 14              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 38               
+    li $a1, 16              
+    li $a2, 18              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 40               
+    li $a1, 12              
+    li $a2, 14              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 45               
+    li $a1, 12              
+    li $a2, 14              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 45               
+    li $a1, 16              
+    li $a2, 18              
+    li $a3, 0x00D3D3D3      
+    jal Desenha_Linha_Vertical    
+    
+    li $a0, 10               
+    li $a1, 7              
+    li $a2, 32              
+    li $a3, 0x00000000      
+    jal Desenha_Linha_Vertical    
+    
+# -------------------------- Linhas verticais ---------------------------------------
+
+# ------------------------ Desenho das linhas em si ---------------------------------
+# ------------------------------- Horizontais ---------------------------------------
     Desenha_Linha_Horizontal:
-    # $a1 (X_INICIO) é o contador do loop.
-    # $a2 (X_FIM) é o limite do loop.
+    # $a1 (X_INICIO) é o contador do loop
+    # $a2 (X_FIM) é o limite do loop
     
 Loop_Desenho_Horizontal:
     # Se x > X_FIM retorna
@@ -89,36 +393,40 @@ Loop_Desenho_Horizontal:
 Finaliza_Desenho_Horizontal:
     jr $ra
     
-# ------------------- horizontal --------------------    
-    DrawVerticalLine:
-    # $a1 (Y_INICIO) será o contador do loop.
-    # $a2 (Y_FIM) será o limite do loop.
+# ------------------------------- Horizontais ---------------------------------------
+
+# -------------------------------- Verticais ----------------------------------------
+    Desenha_Linha_Vertical:
+    # $a1 (Y_INICIO) é o contador do loop
+    # $a2 (Y_FIM) é o limite do loop
     
-LOOP_DRAW_V:
-    # Condição de Parada: Se Y_atual ($a1) > Y_FIM ($a2), retorna.
-    bgt $a1, $a2, END_DRAW_V 
+Loop_Desenho_Vertical:
+    # Se Y_atual ($a1) > Y_FIM ($a2) retorna
+    bgt $a1, $a2, Finaliza_Desenho_Vertical 
 
-    # 1. CÁLCULO DO ENDEREÇO (Fórmula Geral)
-
-    # Offset em Unidades = (Y_atual * Largura) + X_fixo
+    # Endereço
+    # Offset em unidades = (Y_atual * Largura) + X_fixo
     # Y_atual = $a1, Largura = $s2, X_fixo = $a0
-    mul $t0, $a1, $s2       # $t0 = Y_atual * Largura (Offset na Linha)
-    add $t0, $t0, $a0       # $t0 = Offset na Linha + X_fixo (Offset em Unidades)
+    mul $t0, $a1, $s2       # $t0 = Y_atual * largura (Offset na linha)
+    add $t0, $t0, $a0       # $t0 = Offset na linha + X_fixo (Offset em unidades)
 
-    # Endereço_Final = BaseAddress ($s0) + Offset ($t0) * Tamanho do Pixel ($s1)
-    mul $t0, $t0, $s1       # $t0 = Offset em Bytes
-    add $t1, $s0, $t0       # $t1 = Endereço Final (Base + Offset)
+    # Endereço_Final = BaseAddress ($s0) + Offset ($t0) * tamanho do pixel ($s1)
+    mul $t0, $t0, $s1       # $t0 = Offset em bytes
+    add $t1, $s0, $t0       # $t1 = endereço final (base + offset)
 
-    # 2. DESENHO
-    sw $a3, 0($t1)          # sw Cor ($a3), 0(Endereço Final)
+    # Desenho em si
+    sw $a3, 0($t1)          # sw cor ($a3), 0(endereço final)
 
-    # 3. Incrementa Y e Repete
-    addi $a1, $a1, 1        # Y_atual = Y_atual + 1
-    j LOOP_DRAW_V
+    # Incrementa Y e segue
+    addi $a1, $a1, 1        # Y_atual += 1
+    j Loop_Desenho_Vertical
 
-END_DRAW_V:
-    jr $ra                  # Retorna
-# ------------------ Linhas coloridas ----------------------------------------------
+Finaliza_Desenho_Vertical:
+    jr $ra 
+    
+# -------------------------------- Verticais ----------------------------------------
+
+# ---------------------------- Linhas coloridas -------------------------------------
 
 Fim_Programa:
     li $v0, 10
