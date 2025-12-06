@@ -7,10 +7,6 @@
 .text
 .globl write_tasks
 
-# OBS: preciso corrigir a escrita, ela está escrevendo os caracteres que definimos e adiciona mais (100 - tamanho da frase) espaços
-# em branco.
-# Além disso, a penúltima frase está sendo repetida na última frase, por algum motivo
-
 # att do zé: Resolvi o erro de escrita e deixei comentado seu codigo que tava errado, basicamente
 # você estava jogando 100 bits direto do buffer, agora eu to considerando o tamanho real da entrada
 
