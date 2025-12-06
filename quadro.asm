@@ -4,8 +4,8 @@ Tam_Pixel:       .word 4 # Cada pixel é composto por 4 bits
 Largura_Display: .word 64 # 64 bits de largura
 
 .text
-.globl bmp2
-bmp2:
+.globl bmp3
+bmp3:
     lw $s0, Endereço_Base   # Endereço base do static
     lw $s1, Tam_Pixel       # Tamanho do pixel
     lw $s2, Largura_Display # Largura da tela
