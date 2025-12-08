@@ -38,20 +38,45 @@ main_loop:
 	# --------------------------------------------------
 		
 	lb $t0, flag
+	beq $t0, 0, next_post
 	beq $t0, 3, complete_task # precisa adicionar as outras flags antes dessa
 	
 	j main_loop
-	
+
+next_post:		
+    	la $a0, posts_filename
+    	jal load_posts
+    	
+    	j end_pondera
+
 complete_task:
+	# --- Impressão das tarefas atuais ---
 	# Quebra de linha inicial
 	li $v0, 4
 	la $a0, breakline
 	syscall
 	la $a0, tasks_filename
 	jal show_tasks
-		
-    	la $a0, posts_filename
-    	jal load_posts
+	
+	# --- Escolha da tarefa a ser concluída ---
+	jal choose_task
+	
+	# --- Alteração da flag da task ---
+	la $a0, tasks_filename
+	jal finish_task
+	
+	# --- Alteração do arquivo de tasks ---
+	la $a0, tasks_filename
+	jal update_arch
+	
+	# --------------------------------------------------
+	# VERIFICAÇÃO SE O ARQUIVO FOI ALTERADO CORRETAMENTE
+	# la $a0, tasks_filename
+	# jal show_tasks
+	# --------------------------------------------------
+	
+	j main_loop
 
+end_pondera:
     	li $v0, 10
     	syscall
