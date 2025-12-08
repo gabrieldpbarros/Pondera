@@ -1,5 +1,4 @@
 .data
-posts_filename: .asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 flag:	.word 0
 
@@ -9,8 +8,7 @@ main:
 	la $a0, tasks_filename
 	jal write_tasks
 
-    	la $a0, posts_filename
-    	jal load_posts
+    	jal main_post
 
     	li $v0, 10
     	syscall

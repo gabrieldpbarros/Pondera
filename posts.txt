@@ -1,12 +1,15 @@
-AUTHOR: joserequena
-TEXT: Hoje comecei o projeto de rede social em Assembly MIPS!
-IMAGE: img/post1.bmp
+0
+joserequena
+Hoje comecei o projeto de rede social em Assembly MIPS!
+1
 ---
-AUTHOR: maria
-TEXT: Trabalhando no projeto da faculdade :)
-IMAGE: img/post2.bmp
+1
+maria
+trabalhando no projeto da faculdade :)
+2
 ---
-AUTHOR: admin
-TEXT: Bem-vindos à rede social feita em Assembly!
-IMAGE: img/banner.bmp
+2
+admin
+Bem-vindos à rede social feita em Assembly!
+3
 ---
