@@ -1,14 +1,18 @@
 .data
 instrucao_inicial:	.asciiz "------ Digite suas 4 tarefas ------\n"	
-texto_opcoes:	.asciiz "\nO que vocÍ deseja fazer?"
-opcoes_post:	.asciiz "\n0: prÛximo post\n1: coment·rios\n2: perfil do autor\n3: concluir tarefa\n4: sair\n"
-mensagem_falta_task: 	.asciiz	"\nERRO: VocÍ deve completar uma tarefa para poder avanÁar.\n"
-mensagem_fim_tasks:	.asciiz	"\nERRO: VocÍ j· completou todas as tarefas do dia. Talvez seja uma boa ideia sair, n„o?\n"
+texto_opcoes:	.asciiz "\nO que voc√™ deseja fazer?"
+opcoes_post:	.asciiz "\n1: pr√≥ximo post\n2: coment√°rios\n3: perfil do autor\n4: concluir tarefa\n5: Ver o tempo desde a ultima troca de post\n6:sair\n"
+mensagem_falta_task: 	.asciiz	"\nERRO: Voc√™ deve completar uma tarefa para poder avan√ßar.\n"
+mensagem_fim_tasks:	.asciiz	"\nERRO: Voc√™ j√° completou todas as tarefas do dia. Talvez seja uma boa ideia sair, n√£o?\n"
 posts_filename:	.asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 breakline:	.asciiz "\n"
+last_post_time_file: .asciiz "last_post_time.txt" # Nome do arquivo de registro
+time_buffer: .space 8                           # Buffer para 64 bits (8 bytes) do tempo
+time_msg_prefix: .asciiz "\nTempo desde a √∫ltima troca de post: "
+time_msg_sufix: .asciiz " segundos.\n"
 flag:	.byte 0
-ver_conclusao:	.byte 1	# marcador se podemos avanÁar para o prÛximo post
+ver_conclusao:	.byte 1	# marcador se podemos avan√ßar para o pr√≥ximo post
 qt_tasks:	.byte 0 # quantidade de tasks concluidas
 
 .text
@@ -22,12 +26,12 @@ main:
 	
 	la $a0, tasks_filename
 	jal write_tasks
-	
+	jal record_post_time
 	jal bmp1
 	jal main_post
 
 main_loop:
-	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USU¡RIO (ir para um post, completar uma tarefa, etc)
+	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USU√ÅRIO (ir para um post, completar uma tarefa, etc)
 	li $v0, 4
 	la $a0, texto_opcoes
 	syscall
@@ -38,61 +42,56 @@ main_loop:
 	li $v0, 5
 	syscall
 	sb $v0, flag
-	
-	# --------------------------------------------------
-	# VERIFICA«√O SE A FLAG FOI ARMAZENADA CORRETAMENTE
-	# li $v0, 1
-	# lb $a0, flag
-	# syscall
-	# --------------------------------------------------
 		
 	lb $t0, flag
 	beq $t0, 1, next_post
 	beq $t0, 2, comentarios
-	# beq $t0, 2, next_post
-	beq $t0, 4 complete_task
-	beq $t0, 5 end_pondera
+	#beq $t0, 2, ver_autor
+	beq $t0, 4, complete_task # precisa adicionar as outras flags antes dessa
+	beq $t0, 5, show_time_since_last_post
+	beq $t0, 6, end_pondera
 	
 	j main_loop
 
 next_post:
-	# 1. Incrementa o Ìndice do Post
+	# 1. Incrementa o √≠ndice do Post
 	addi $s7, $s7, 1
 	
-	# 2. Verifica se $s7 È maior que o n˙mero m·ximo de posts (3)
+	# 2. Verifica se $s7 √© maior que o n√∫mero m√°ximo de posts (3)
 	li $t1, 3
 	beq $s7, $t1, reset_post_index # Se for 3, reseta para 0
 	
-	j select_bitmap_and_display # Continua o fluxo se for 1 ou 2
+	j Seleciona_bitmaps # Continua o fluxo se for 1 ou 2
 
 reset_post_index:
-	li $s7, 0 # Reseta o Ìndice para o Post 0
+	li $s7, 0 # Reseta o √≠ndice para o Post 0
 
-select_bitmap_and_display:
-	beq $s7, 0, call_bmp1
-	beq $s7, 1, call_bmp2
-	beq $s7, 2, call_bmp3
+
+Seleciona_bitmaps:
+beq $s7, 0, Chama_bitmap1
+beq $s7, 1, Chama_bitmap2
+beq $s7, 2, Chama_bitmap3
     
 	# 4. Rotinas de chamada e retorno
-call_bmp1: 
-	jal bmp1
-	j continue_display
-call_bmp2: 
-	jal bmp2
-	j continue_display
-call_bmp3: 
-	jal bmp3
-	j continue_display
+Chama_bitmap1: 
+jal bmp1
+j Continua_display
+Chama_bitmap2: 
+jal bmp2
+j Continua_display
+Chama_bitmap3: 
+jal bmp3
+j Continua_display
 
-continue_display:
-    	# 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
-	jal main_post
+Continua_display:
+    # 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
+jal main_post
     
     	# 6. Retorna ao Loop Principal (menu)
 	j main_loop
 
 complete_task:
-	# --- Impress„o das tarefas atuais ---
+	# --- Impress√£o das tarefas atuais ---
 	# Quebra de linha inicial
 	li $v0, 4
 	la $a0, breakline
@@ -100,27 +99,25 @@ complete_task:
 	la $a0, tasks_filename
 	jal show_tasks
 	
-	# --- Escolha da tarefa a ser concluÌda ---
+	# --- Escolha da tarefa a ser conclu√≠da ---
 	jal choose_task
 	
-	# --- AlteraÁ„o da flag da task ---
+	# --- Altera√ß√£o da flag da task ---
 	la $a0, tasks_filename
 	jal finish_task
 	
-	# --- AlteraÁ„o do arquivo de tasks ---
+	# --- Altera√ß√£o do arquivo de tasks ---
 	la $a0, tasks_filename
 	jal update_arch
-	
-	# --------------------------------------------------
-	# VERIFICA«√O SE O ARQUIVO FOI ALTERADO CORRETAMENTE
-	# la $a0, tasks_filename
-	# jal show_tasks
-	# --------------------------------------------------
 	
 	j main_loop
 
 reset_post:
 li $s7, 0
+
+show_time_since_last_post: # <<-- NOVO ROTEAMENTO
+    jal calculate_time_diff
+    j main_loop
 
 end_pondera:
     	li $v0, 10

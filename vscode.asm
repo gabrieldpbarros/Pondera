@@ -1,5 +1,5 @@
 .data
-Endereço_Base: .word 0x10040000 # Endereço base do bitmap como static
+Endereço_Base: .word 0x10040000 # Endereço base do bitmap como heap
 Tam_Pixel:   .word 4 # Cada pixel é composto por 4 bits
 Largura_Display: .word 64 # 64 bits de largura
 
@@ -8,8 +8,9 @@ X_Divisoria: .word 16 # Divisão pra linha cinza
 .text
 .globl bmp1
 bmp1:
-    addi $sp, $sp, -40        # reservar 8 palavras (8*4 = 32)
-    sw   $ra, 36($sp)         # salvar $ra (offset 28)
+# Salva os registradores pra não quebrar pc
+    addi $sp, $sp, -40        
+    sw   $ra, 36($sp)         
     sw   $s0, 32($sp)
     sw   $s1, 28($sp)
     sw   $s2, 24($sp)
@@ -17,12 +18,11 @@ bmp1:
     sw   $s4, 16($sp)
     sw   $s5, 12($sp)
     sw   $s6, 8($sp)
-    
     sw $t9, 4($sp)
     sw $v0, 0($sp)
-    li $s0, 0x10040000
-    li $s1, 4       # Tamanho do pixel
-    li $s2, 64 # Largura da tela
+    li $s0, 0x10040000      # Endereço base como heap
+    li $s1, 4               # Tamanho do pixel
+    li $s2, 64              # Largura da tela
     lw $s3, X_Divisoria     # Divisão da linha cinza
     li $s4, 0               # Contagem pras colunas cinzas
     li $s5, 32              # Limite da tela
@@ -349,17 +349,16 @@ lw $a3, 0($sp)
     jr   $ra
     
 # ------------------ Linhas coloridas ----------------------------------------------
-Fim_Programa:
-lw $v0, 0($sp)
-lw $t9,4($sp)
-lw $s6, 8($sp)
-lw $s5, 12($sp)
-lw $s4, 16($sp)
-lw $s3, 20($sp)
-lw $s2, 24($sp)
-lw $s1, 28($sp)
-lw $s0, 32($sp)
-lw $ra, 36($sp)
-addi $sp, $sp, 40
-
-jr $ra
+Fim_Programa: # Restaura os registradores
+    lw $v0, 0($sp)
+    lw $t9,4($sp)
+    lw $s6, 8($sp)
+    lw $s5, 12($sp)
+    lw $s4, 16($sp)
+    lw $s3, 20($sp)
+    lw $s2, 24($sp)
+    lw $s1, 28($sp)
+    lw $s0, 32($sp)
+    lw $ra, 36($sp)
+    addi $sp, $sp, 40
+    jr $ra

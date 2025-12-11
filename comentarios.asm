@@ -22,7 +22,7 @@ Buffer_entrada:   .space 256     # Buffer para a string do comentario lido do te
 # $s3: Comprimento do conteudo original do arquivo (necessario pra adicionar)
 
 comentarios: # 1 - Usuario digita o que quer fazer: 1: ler comentarios, 2: add comentario, 3: sair do programa
-    # Vamos assumir que $s0, $s1, $s2, $s3 são usados e precisam de salvamento.
+    # Salva os registradores importantes pra que os jal não quebrem o program counter
     addi $sp, $sp, -16
     sw $ra, 0($sp)
     sw $s0, 4($sp)
@@ -46,7 +46,7 @@ menu_comentarios:
     
 # 2 - Definicao do que fazer baseado na escolha
 
-    # Se $s1 = 1, mostra os comentarios, se $s1 = 2, add comentario
+    # Se $s1 = 1, mostra os comentarios, se $s1 = 2, add comentario, $s3 retorna pro loop do main
     li $t0, 1
     beq $s1, $t0, Exibe_Arquivo
     
@@ -60,12 +60,12 @@ menu_comentarios:
     j Entrada_invalida
 
 Seleciona_Nome_Arquivo:
-    # Salva $ra e $s7 (Embora $s7 não mude, boa prática em rotinas JAL)
+    # Salva $ra e $s7 pra não quebrar o pc
     addi $sp, $sp, -8
     sw $ra, 0($sp)
     sw $s7, 4($sp) 
     
-    # Vamos usar $s7 (ID) para decidir qual arquivo
+    # Usa $s7 (ID) para decidir qual arquivo abrir
     li $t0, 0
     beq $s7, $t0, Seleciona_Arq_1
     
@@ -75,8 +75,7 @@ Seleciona_Nome_Arquivo:
     li $t0, 2
     beq $s7, $t0, Seleciona_Arq_3
     
-    # Se for ID alto (3, 4...), assume o primeiro ou trata como erro.
-    # Por segurança, vamos selecionar o Arq 1 se o ID for maior que 2.
+    # Se o ID for maior que 2 chama o arquivo 1 pra nao dar problema
     j Seleciona_Arq_1 
     
 Seleciona_Arq_1:
@@ -168,6 +167,7 @@ Loop_tamanho:
     addi $s2, $s2, 1     
     addi $t0, $t0, 1     
     j Loop_tamanho
+    
 Finaliza_tamanho:
     
     li $t0, 15          # Limite mínimo de 15 caracteres
@@ -220,7 +220,7 @@ Finaliza_copia:
 
     # 2.5 reescreve o arquivo com a concatenacao
     li $v0, 13
-   move $a0, $s4
+    move $a0, $s4
     li $a1, 1           # Só escrita
     li $a2, 0
     syscall
@@ -246,7 +246,7 @@ Finaliza_copia:
 
 # Erro e saidas
 
-Erro_tamanho: # Exibe a mensagem de erro e retorna para Add_no_Arquivo para tentar novamente
+Erro_tamanho: # Exibe a mensagem de erro e retorna para Add_no_Arquivo pra tentar novamente
     li $v0, 4
     la $a0, Mensagem_erro_tamanho
     syscall
@@ -269,7 +269,7 @@ Erro_leitura:
     j Finaliza_Programa
     
 Fim_Comentarios: # Salto para sair e retornar ao main_loop
-    # --- EPILOGUE: Restaurar registradores ---
+    # Restaura os registradores pra não quebrar o programa
     lw $s2, 12($sp)
     lw $s1, 8($sp)
     lw $s0, 4($sp)
