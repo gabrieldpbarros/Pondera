@@ -1,7 +1,6 @@
 .data
 	buffer:	.space 2048
 	flag_task:	.byte 0		# utilizamos para selecionar qual será a task concluída
-
 .text
 .globl write_tasks
 .globl show_tasks

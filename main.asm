@@ -2,10 +2,14 @@
 instrucao_inicial:	.asciiz "------ Digite suas 4 tarefas ------\n"	
 texto_opcoes:	.asciiz "\nO que você deseja fazer?"
 opcoes_post:	.asciiz "\n0: próximo post\n1: comentários\n2: perfil do autor\n3: concluir tarefa\n4: sair\n"
+mensagem_falta_task: 	.asciiz	"\nERRO: Você deve completar uma tarefa para poder avançar.\n"
+mensagem_fim_tasks:	.asciiz	"\nERRO: Você já completou todas as tarefas do dia. Talvez seja uma boa ideia sair, não?\n"
 posts_filename:	.asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 breakline:	.asciiz "\n"
 flag:	.byte 0
+ver_conclusao:	.byte 1	# marcador se podemos avançar para o próximo post
+qt_tasks:	.byte 0 # quantidade de tasks concluidas
 
 .text
 .globl main
@@ -43,11 +47,11 @@ main_loop:
 	# --------------------------------------------------
 		
 	lb $t0, flag
-	beq $t0, 0, next_post
-	beq $t0, 1, comentarios
-	beq $t0, 2, next_post
-	beq $t0, 3, complete_task # precisa adicionar as outras flags antes dessa
-	beq $t0, 4, end_pondera
+	beq $t0, 1, next_post
+	beq $t0, 2, comentarios
+	# beq $t0, 2, next_post
+	beq $t0, 4 complete_task
+	beq $t0, 5 end_pondera
 	
 	j main_loop
 
@@ -65,27 +69,27 @@ reset_post_index:
 	li $s7, 0 # Reseta o índice para o Post 0
 
 select_bitmap_and_display:
-beq $s7, 0, call_bmp1
-beq $s7, 1, call_bmp2
-beq $s7, 2, call_bmp3
+	beq $s7, 0, call_bmp1
+	beq $s7, 1, call_bmp2
+	beq $s7, 2, call_bmp3
     
 	# 4. Rotinas de chamada e retorno
 call_bmp1: 
-jal bmp1
-j continue_display
+	jal bmp1
+	j continue_display
 call_bmp2: 
-jal bmp2
-j continue_display
+	jal bmp2
+	j continue_display
 call_bmp3: 
-jal bmp3
-j continue_display
+	jal bmp3
+	j continue_display
 
 continue_display:
-    # 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
-jal main_post
+    	# 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
+	jal main_post
     
-    # 6. Retorna ao Loop Principal (menu)
-j main_loop
+    	# 6. Retorna ao Loop Principal (menu)
+	j main_loop
 
 complete_task:
 	# --- Impressão das tarefas atuais ---
