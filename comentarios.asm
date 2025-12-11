@@ -1,5 +1,7 @@
 .data
-Nome_arquivo:       .asciiz "comentarioteste.txt"
+Nome_arquivo1:       .asciiz "comentarios1.txt"
+Nome_arquivo2:       .asciiz "comentarios2.txt"
+Nome_arquivo3:       .asciiz "comentarios3.txt"
 Opcoes:    .asciiz "Escolha a operacao:\n1 - Ver Comentarios\n2 - Adicionar Comentario\n3 - Sair\n"
 Mensagem_adicionar_comentario:     .asciiz "Digite o seu comentário: (max 255 chars):\n"
 Quebra_comentarios:  .asciiz "--- Comentarios ---\n"
@@ -20,17 +22,27 @@ Buffer_entrada:   .space 256     # Buffer para a string do comentario lido do te
 # $s3: Comprimento do conteudo original do arquivo (necessario pra adicionar)
 
 comentarios: # 1 - Usuario digita o que quer fazer: 1: ler comentarios, 2: add comentario, 3: sair do programa
-    
+    # Vamos assumir que $s0, $s1, $s2, $s3 são usados e precisam de salvamento.
+    addi $sp, $sp, -16
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
     # Imprime o menu
-    li $v0, 4           # syscall 4: imprime a string do menu
+    jal Seleciona_Nome_Arquivo
+    move $s4, $v0       # $s4 agora armazena o endereço do nome do arquivo (comentarios1/2/3)
+
+menu_comentarios:
+    # Imprime o menu
+    li $v0, 4
     la $a0, Opcoes
     syscall
 
     # Leitura da opção do usuário
-    li $v0, 5           # syscall 5: leitura de int
+    li $v0, 5
     syscall
     
-    move $s1, $v0       # Salva em $s1 a opcao do usuario
+    move $s1, $v0
     
 # 2 - Definicao do que fazer baseado na escolha
 
@@ -42,17 +54,56 @@ comentarios: # 1 - Usuario digita o que quer fazer: 1: ler comentarios, 2: add c
     beq $s1, $t0, Add_no_Arquivo
     
     li $t0, 3
-    beq $s1, $t0, Finaliza_Programa
+    beq $s1, $t0, Fim_Comentarios
     
     # Se não for 1, 2 ou 3:
     j Entrada_invalida
+
+Seleciona_Nome_Arquivo:
+    # Salva $ra e $s7 (Embora $s7 não mude, boa prática em rotinas JAL)
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s7, 4($sp) 
+    
+    # Vamos usar $s7 (ID) para decidir qual arquivo
+    li $t0, 0
+    beq $s7, $t0, Seleciona_Arq_1
+    
+    li $t0, 1
+    beq $s7, $t0, Seleciona_Arq_2
+    
+    li $t0, 2
+    beq $s7, $t0, Seleciona_Arq_3
+    
+    # Se for ID alto (3, 4...), assume o primeiro ou trata como erro.
+    # Por segurança, vamos selecionar o Arq 1 se o ID for maior que 2.
+    j Seleciona_Arq_1 
+    
+Seleciona_Arq_1:
+    la $v0, Nome_arquivo1
+    j Retorna_Selecao
+    
+Seleciona_Arq_2:
+    la $v0, Nome_arquivo2
+    j Retorna_Selecao
+    
+Seleciona_Arq_3:
+    la $v0, Nome_arquivo3
+    j Retorna_Selecao
+    
+Retorna_Selecao:
+    # Restaura $s7 e $ra
+    lw $s7, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 8
+    jr $ra
 
 # Opcao 1: Mostrar comentarios
 Exibe_Arquivo:
     
     # 1.1 Abrir arquivo no modo só leitura ($a1 = 0)
     li $v0, 13          # syscall 13: Abre o arquivo
-    la $a0, Nome_arquivo
+    move $a0, $s4
     li $a1, 0           # Só leitura
     li $a2, 0
     syscall
@@ -92,7 +143,7 @@ Exibe_Arquivo:
     la $a0, Quebra_comentarios # Cabeçalho de quebra
     syscall
     
-    j comentarios       # Volta pro loop da opcao do usuario
+    j menu_comentarios       # Volta pro loop da opcao do usuario
 
 # 2: Adiciona comentario
 Add_no_Arquivo:
@@ -124,7 +175,7 @@ Finaliza_tamanho:
     
     # 2.3 Leitura do que tem no arquivo pra copiar
     li $v0, 13          
-    la $a0, Nome_arquivo
+    move $a0, $s4
     li $a1, 0           # Só leitura
     li $a2, 0
     syscall
@@ -169,7 +220,7 @@ Finaliza_copia:
 
     # 2.5 reescreve o arquivo com a concatenacao
     li $v0, 13
-    la $a0, Nome_arquivo
+   move $a0, $s4
     li $a1, 1           # Só escrita
     li $a2, 0
     syscall
@@ -191,7 +242,7 @@ Finaliza_copia:
     la $a0, Confirmacao_adicao_comentario
     syscall
     
-    j comentarios
+    j menu_comentarios
 
 # Erro e saidas
 
@@ -216,6 +267,16 @@ Erro_leitura:
     move $a0, $s0
     syscall
     j Finaliza_Programa
+    
+Fim_Comentarios: # Salto para sair e retornar ao main_loop
+    # --- EPILOGUE: Restaurar registradores ---
+    lw $s2, 12($sp)
+    lw $s1, 8($sp)
+    lw $s0, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 16
+    
+    jr $ra # Retorna para o main_loop
     
 Finaliza_Programa:
     li $v0, 10          # syscall 10: Finaliza

@@ -1,7 +1,7 @@
 .data
 instrucao_inicial:	.asciiz "------ Digite suas 4 tarefas ------\n"	
 texto_opcoes:	.asciiz "\nO que você deseja fazer?"
-opcoes_post:	.asciiz "\n0: próximo post\n1: comentários\n2: perfil do autor\n3: concluir tarefa\n"
+opcoes_post:	.asciiz "\n0: próximo post\n1: comentários\n2: perfil do autor\n3: concluir tarefa\n4: sair\n"
 posts_filename:	.asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 breakline:	.asciiz "\n"
@@ -9,13 +9,18 @@ flag:	.byte 0
 
 .text
 .globl main
+.globl main_loop
 main:
+	li, $s7, 0
 	li $v0, 4
 	la $a0, instrucao_inicial
 	syscall
 	
 	la $a0, tasks_filename
 	jal write_tasks
+	
+	jal bmp1
+	jal main_post
 
 main_loop:
 	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USUÁRIO (ir para um post, completar uma tarefa, etc)
@@ -39,15 +44,48 @@ main_loop:
 		
 	lb $t0, flag
 	beq $t0, 0, next_post
+	beq $t0, 1, comentarios
+	beq $t0, 2, next_post
 	beq $t0, 3, complete_task # precisa adicionar as outras flags antes dessa
+	beq $t0, 4, end_pondera
 	
 	j main_loop
 
-next_post:		
-    	la $a0, posts_filename
-    	jal load_posts
-    	
-    	j end_pondera
+next_post:
+	# 1. Incrementa o índice do Post
+	addi $s7, $s7, 1
+	
+	# 2. Verifica se $s7 é maior que o número máximo de posts (3)
+	li $t1, 3
+	beq $s7, $t1, reset_post_index # Se for 3, reseta para 0
+	
+	j select_bitmap_and_display # Continua o fluxo se for 1 ou 2
+
+reset_post_index:
+	li $s7, 0 # Reseta o índice para o Post 0
+
+select_bitmap_and_display:
+beq $s7, 0, call_bmp1
+beq $s7, 1, call_bmp2
+beq $s7, 2, call_bmp3
+    
+	# 4. Rotinas de chamada e retorno
+call_bmp1: 
+jal bmp1
+j continue_display
+call_bmp2: 
+jal bmp2
+j continue_display
+call_bmp3: 
+jal bmp3
+j continue_display
+
+continue_display:
+    # 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
+jal main_post
+    
+    # 6. Retorna ao Loop Principal (menu)
+j main_loop
 
 complete_task:
 	# --- Impressão das tarefas atuais ---
@@ -76,6 +114,9 @@ complete_task:
 	# --------------------------------------------------
 	
 	j main_loop
+
+reset_post:
+li $s7, 0
 
 end_pondera:
     	li $v0, 10

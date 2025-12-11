@@ -1,8 +1,8 @@
 1
-comprar GTA
+a
 0
-atropelar um idoso
+b
 0
-assaltar uma grávida
+c
 0
-ir pra casa jogar GTA
+d

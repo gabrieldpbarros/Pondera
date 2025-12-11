@@ -1,12 +1,15 @@
-AUTHOR: joserequena
-TEXT: Hoje comecei o projeto de rede social em Assembly MIPS!
-IMAGE: img/post1.bmp
+0
+José Requena
+Consegui terminar meu projeto da bolsa de extensão, deem uma olhada no código!
+1
 ---
-AUTHOR: maria
-TEXT: Trabalhando no projeto da faculdade :)
-IMAGE: img/post2.bmp
+1
+Enzo Vidal
+BATI MEU RECORDE DE 3X3, 7.1 é I-N-S-A-N-O, a solve completa vai estar no youtube!
+2
 ---
-AUTHOR: admin
-TEXT: Bem-vindos à rede social feita em Assembly!
-IMAGE: img/banner.bmp
+2
+Gabriel Delgado
+Fiz um quadrinho do meu jogo favorito, mine é vida S2
+3
 ---

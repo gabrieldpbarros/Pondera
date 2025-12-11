@@ -1,5 +1,5 @@
 .data
-Endereço_Base: .word 0x10010000 # Endereço base do bitmap como static
+Endereço_Base: .word 0x10040000 # Endereço base do bitmap como static
 Tam_Pixel:   .word 4 # Cada pixel é composto por 4 bits
 Largura_Display: .word 64 # 64 bits de largura
 
@@ -8,9 +8,21 @@ X_Divisoria: .word 16 # Divisão pra linha cinza
 .text
 .globl bmp1
 bmp1:
-    lw $s0, Endereço_Base   # Endereço base do static
-    lw $s1, Tam_Pixel       # Tamanho do pixel
-    lw $s2, Largura_Display # Largura da tela
+    addi $sp, $sp, -40        # reservar 8 palavras (8*4 = 32)
+    sw   $ra, 36($sp)         # salvar $ra (offset 28)
+    sw   $s0, 32($sp)
+    sw   $s1, 28($sp)
+    sw   $s2, 24($sp)
+    sw   $s3, 20($sp)
+    sw   $s4, 16($sp)
+    sw   $s5, 12($sp)
+    sw   $s6, 8($sp)
+    
+    sw $t9, 4($sp)
+    sw $v0, 0($sp)
+    li $s0, 0x10040000
+    li $s1, 4       # Tamanho do pixel
+    li $s2, 64 # Largura da tela
     lw $s3, X_Divisoria     # Divisão da linha cinza
     li $s4, 0               # Contagem pras colunas cinzas
     li $s5, 32              # Limite da tela
@@ -297,7 +309,13 @@ Linhas_Coloridas:
     li $a3, 0x00D3D3D3     
     jal Desenha_Linha_Horizontal           
     
+    j Fim_Programa
+    
     Desenha_Linha_Horizontal:
+    addi $sp, $sp, -12  # Alocar espaço para $a1, $a2, $a3 (3 palavras)
+    sw $a1, 8($sp)      # Salva $a1 (contador/X_INICIO)
+    sw $a2, 4($sp)      # Salva $a2 (limite/X_FIM)
+    sw $a3, 0($sp)
     # $a1 (X_INICIO) é o contador do loop.
     # $a2 (X_FIM) é o limite do loop.
     
@@ -323,10 +341,25 @@ Loop_Desenho:
     j Loop_Desenho
 
 Finaliza_Desenho:
-    jr $ra
+lw $a3, 0($sp)
+    lw $a2, 4($sp)
+    lw $a1, 8($sp)
+    
+    addi $sp, $sp, 12   # Desalocar o espa
+    jr   $ra
     
 # ------------------ Linhas coloridas ----------------------------------------------
-
 Fim_Programa:
-    li $v0, 10
-    syscall
+lw $v0, 0($sp)
+lw $t9,4($sp)
+lw $s6, 8($sp)
+lw $s5, 12($sp)
+lw $s4, 16($sp)
+lw $s3, 20($sp)
+lw $s2, 24($sp)
+lw $s1, 28($sp)
+lw $s0, 32($sp)
+lw $ra, 36($sp)
+addi $sp, $sp, 40
+
+jr $ra
