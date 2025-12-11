@@ -27,7 +27,7 @@ A seção de comentários é focada em incentivar críticas construtivas ou ince
 
 Um arquivo (**flag.txt**) vai representar os métodos dentro do programa, definidos nos arquivos de métodos do programa.
 
-A interação com o usuário é feita completamente através desse arquivo, que redireciona as ações conforme a flag indicada pela interação com a interface. A interação do usuário acontece com um arquivo .mar, rodando em loop, que interage com o **flag.txt**.
+A interação com o usuário é feita completamente através desse arquivo, que redireciona as ações conforme a flag indicada pela interação com a interface. A interação do usuário acontece com um arquivo .asm, rodando em loop, que interage com o **flag.txt**.
 
 Esse redirecionamento aponta para outros arquivos temporários, como um arquivo de texto ou um arquivo de representação de uma imagem, os quais processam essas informações e armazenam no "banco de dados" geral.
 
@@ -52,7 +52,7 @@ Um comentário que referencia o post de código **P1**, por exemplo, pode ser id
 
 ## Ideia de implementação
 
-O usuário executa um arquivo .mar e insere suas tarefas/tem suas tarefas inseridas pelo acesso ao armazenamento do aplicativo. Essas informações serão armazenadas em um arquivo temporário e serão usadas para determinar a quantidade de posts que o usuário da sessão poderá acessar.
+O usuário executa um arquivo .asm e insere suas tarefas/tem suas tarefas inseridas pelo acesso ao armazenamento do aplicativo. Essas informações serão armazenadas em um arquivo temporário e serão usadas para determinar a quantidade de posts que o usuário da sessão poderá acessar.
 
 A partir disso, o usuário acessa um post (aleatório ou não, a definir) do arquivo de posts e tem algumas opções partindo desse ponto. Ele pode comentar no post, acessar a aba de comentários, avançar para o próximo post ou acessar o próprio perfil.
 

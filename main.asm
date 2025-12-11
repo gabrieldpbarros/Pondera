@@ -1,15 +1,19 @@
 .data
 instrucao_inicial:	.asciiz "------ Digite suas 4 tarefas ------\n"	
-texto_opcoes:	.asciiz "\nO que vocÍ deseja fazer?"
-opcoes_post:	.asciiz "\n1: prÛximo post\n2: coment·rios\n3: perfil do autor\n4: concluir tarefa\n5: Ver o tempo desde a ultima troca de post\n6:sair\n"
+texto_opcoes:	.asciiz "\nO que voc√™ deseja fazer?"
+opcoes_post:	.asciiz "\n1: pr√≥ximo post\n2: coment√°rios\n3: perfil do autor\n4: concluir tarefa\n5: Ver o tempo desde a ultima troca de post\n6:sair\n"
+mensagem_falta_task: 	.asciiz	"\nERRO: Voc√™ deve completar uma tarefa para poder avan√ßar.\n"
+mensagem_fim_tasks:	.asciiz	"\nERRO: Voc√™ j√° completou todas as tarefas do dia. Talvez seja uma boa ideia sair, n√£o?\n"
 posts_filename:	.asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 breakline:	.asciiz "\n"
 last_post_time_file: .asciiz "last_post_time.txt" # Nome do arquivo de registro
 time_buffer: .space 8                           # Buffer para 64 bits (8 bytes) do tempo
-time_msg_prefix: .asciiz "\nTempo desde a ˙ltima troca de post: "
+time_msg_prefix: .asciiz "\nTempo desde a √∫ltima troca de post: "
 time_msg_sufix: .asciiz " segundos.\n"
 flag:	.byte 0
+ver_conclusao:	.byte 1	# marcador se podemos avan√ßar para o pr√≥ximo post
+qt_tasks:	.byte 0 # quantidade de tasks concluidas
 
 .text
 .globl main
@@ -27,7 +31,7 @@ main:
 	jal main_post
 
 main_loop:
-	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USU¡RIO (ir para um post, completar uma tarefa, etc)
+	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USU√ÅRIO (ir para um post, completar uma tarefa, etc)
 	li $v0, 4
 	la $a0, texto_opcoes
 	syscall
@@ -50,17 +54,18 @@ main_loop:
 	j main_loop
 
 next_post:
-	# 1. Incrementa o Ìndice do Post
+	# 1. Incrementa o √≠ndice do Post
 	addi $s7, $s7, 1
 	
-	# 2. Verifica se $s7 È maior que o n˙mero m·ximo de posts (3)
+	# 2. Verifica se $s7 √© maior que o n√∫mero m√°ximo de posts (3)
 	li $t1, 3
 	beq $s7, $t1, reset_post_index # Se for 3, reseta para 0
 	
 	j Seleciona_bitmaps # Continua o fluxo se for 1 ou 2
 
 reset_post_index:
-	li $s7, 0 # Reseta o Ìndice para o Post 0
+	li $s7, 0 # Reseta o √≠ndice para o Post 0
+
 
 Seleciona_bitmaps:
 beq $s7, 0, Chama_bitmap1
@@ -82,11 +87,11 @@ Continua_display:
     # 5. Chama main_post para exibir o Autor/Legenda (usando o $s7 atual)
 jal main_post
     
-    # 6. Retorna ao Loop Principal (menu)
-j main_loop
+    	# 6. Retorna ao Loop Principal (menu)
+	j main_loop
 
 complete_task:
-	# --- Impress„o das tarefas atuais ---
+	# --- Impress√£o das tarefas atuais ---
 	# Quebra de linha inicial
 	li $v0, 4
 	la $a0, breakline
@@ -94,14 +99,14 @@ complete_task:
 	la $a0, tasks_filename
 	jal show_tasks
 	
-	# --- Escolha da tarefa a ser concluÌda ---
+	# --- Escolha da tarefa a ser conclu√≠da ---
 	jal choose_task
 	
-	# --- AlteraÁ„o da flag da task ---
+	# --- Altera√ß√£o da flag da task ---
 	la $a0, tasks_filename
 	jal finish_task
 	
-	# --- AlteraÁ„o do arquivo de tasks ---
+	# --- Altera√ß√£o do arquivo de tasks ---
 	la $a0, tasks_filename
 	jal update_arch
 	
