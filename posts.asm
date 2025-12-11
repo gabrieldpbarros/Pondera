@@ -9,11 +9,12 @@
 .globl main_post
 
 main_post:
+# Mesma coisa de salvar os registradores importantes antes pra não quebrar o pc
 addi $sp, $sp, -16 
     sw $ra, 0($sp)
     sw $s0, 4($sp)
     sw $s1, 8($sp)
-    sw $s2, 12($sp) # Salvar $s2 (usado no novo read_line)
+    sw $s2, 12($sp)
     move $s0, $s7          # $s0 = ID desejado (Target ID)
 
     # 2. Inicializar ponteiro da string
@@ -77,7 +78,7 @@ post_not_found:
 # Retorna: $a0 = Endereço da linha lida
 #          $s1 = Ponteiro atualizado para a PRÓXIMA linha
 read_line:
-    # --- PROLOGUE de read_line (Protege $s2, $s3) ---
+    # Salva os registradores
     addi $sp, $sp, -8
     sw $s2, 0($sp)
     sw $s3, 4($sp)
@@ -153,21 +154,19 @@ atoi_end:
 
 # --- Fim do Programa ---
 exit_program:
-   # --- EPILOGUE de main_post (Restaurar registradores) ---
-    lw $s1, 8($sp)    # Restaura $s1
-    lw $s0, 4($sp)    # Restaura $s0
-    lw $ra, 0($sp)    # Restaura o endereço de retorno (CRÍTICO!)
-    addi $sp, $sp, 12 # Libera a pilha (Desalocação)
-    # -------------------------------------------------------
+   # Restaura os registradores pra não quebrar o pc
+    lw $s1, 8($sp)    
+    lw $s0, 4($sp)    
+    lw $ra, 0($sp)   
+    addi $sp, $sp, 12 # Libera a pilha
 
     jr $ra # Retorna para o next_post (ou main_loop)
 fim_main_post_success:
-# --- EPILOGUE de main_post (Restaurar registradores) ---
-    lw $s1, 8($sp)    # Restaura $s1
-    lw $s0, 4($sp)    # Restaura $s0
-    lw $ra, 0($sp)    # Restaura o endereço de retorno (CRÍTICO!)
-    addi $sp, $sp, 12 # Libera a pilha (Desalocação)
-    # -------------------------------------------------------
+# Restaura os registradores pra não quebrar o pc
+    lw $s1, 8($sp)   
+    lw $s0, 4($sp)    
+    lw $ra, 0($sp)   
+    addi $sp, $sp, 12 # Libera a pilha 
 
     jr $ra # Retorna para o next_post (ou main_loop)
     jr $ra # Retorna para o chamador (main)

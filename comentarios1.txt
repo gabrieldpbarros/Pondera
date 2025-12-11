@@ -1,4 +1,3 @@
-Cara, essa IA pra detecÃ§Ã£o de fake news pode ser o futuro! 
+Cara, essa IA pra deteção de fake news pode ser o futuro! 
 Me deu nostalgia de quando eu codava em C!!
-NÃ£o sei como daria pra implementar, mas uma funÃ§Ã£o de knn poderia ser feita desse jeito...
-adjoiajdaojwdaod
+Não sei como daria pra implementar, mas uma função de knn poderia ser feita desse jeito...
