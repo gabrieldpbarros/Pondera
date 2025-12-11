@@ -6,8 +6,9 @@ Largura_Display: .word 64 # 64 bits de largura
 .text
 .globl bmp3
 bmp3:
-addi $sp, $sp, -40        # reservar 8 palavras (8*4 = 32)
-    sw   $ra, 36($sp)         # salvar $ra (offset 28)
+# Mesma coisa dos registradores importantes pra nao quebrar pc
+addi $sp, $sp, -40        
+    sw   $ra, 36($sp)         
     sw   $s0, 32($sp)
     sw   $s1, 28($sp)
     sw   $s2, 24($sp)
@@ -17,7 +18,7 @@ addi $sp, $sp, -40        # reservar 8 palavras (8*4 = 32)
     sw   $s6, 8($sp)
     sw $t9, 4($sp)
     sw $v0, 0($sp)
-    li $s0, 0x10040000   # Endereço base do static
+    li $s0, 0x10040000   # Endereço base do heap
     lw $s1, Tam_Pixel       # Tamanho do pixel
     lw $s2, Largura_Display # Largura da tela
     li $s4, 0               # Contagem pras colunas
@@ -478,16 +479,16 @@ Finaliza_Desenho_Vertical:
 
 # ---------------------------- Linhas coloridas -------------------------------------
 
-Fim_Programa:
+Fim_Programa: # Restauração dos registradores importantes
     lw $v0, 0($sp)
-lw $t9,4($sp)
-lw $s6, 8($sp)
-lw $s5, 12($sp)
-lw $s4, 16($sp)
-lw $s3, 20($sp)
-lw $s2, 24($sp)
-lw $s1, 28($sp)
-lw $s0, 32($sp)
-lw $ra, 36($sp)
-addi $sp, $sp, 40
+    lw $t9,4($sp)
+    lw $s6, 8($sp)
+    lw $s5, 12($sp)
+    lw $s4, 16($sp)
+    lw $s3, 20($sp)
+    lw $s2, 24($sp)
+    lw $s1, 28($sp)
+    lw $s0, 32($sp)
+    lw $ra, 36($sp)
+    addi $sp, $sp, 40
     jr $ra
