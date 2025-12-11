@@ -1,12 +1,23 @@
 .data
-Endereço_Base:   .word 0x10010000 # Endereço base do bitmap como heap
+Endereço_Base:   .word 0x10040000 # Endereço base do bitmap como heap
 Tam_Pixel:       .word 4 # Cada pixel é composto por 4 bits
 Largura_Display: .word 64 # 64 bits de largura
 
 .text
 .globl bmp3
 bmp3:
-    lw $s0, Endereço_Base   # Endereço base do static
+addi $sp, $sp, -40        # reservar 8 palavras (8*4 = 32)
+    sw   $ra, 36($sp)         # salvar $ra (offset 28)
+    sw   $s0, 32($sp)
+    sw   $s1, 28($sp)
+    sw   $s2, 24($sp)
+    sw   $s3, 20($sp)
+    sw   $s4, 16($sp)
+    sw   $s5, 12($sp)
+    sw   $s6, 8($sp)
+    sw $t9, 4($sp)
+    sw $v0, 0($sp)
+    li $s0, 0x10040000   # Endereço base do static
     lw $s1, Tam_Pixel       # Tamanho do pixel
     lw $s2, Largura_Display # Largura da tela
     li $s4, 0               # Contagem pras colunas
@@ -398,6 +409,8 @@ Linhas_Coloridas:
     li $a3, 0x000db50d        
     jal Desenha_Linha_Vertical
     
+    j Fim_Programa
+    
 # -------------------------- Linhas verticais ---------------------------------------
 
 # ------------------------ Desenho das linhas em si ---------------------------------
@@ -466,5 +479,15 @@ Finaliza_Desenho_Vertical:
 # ---------------------------- Linhas coloridas -------------------------------------
 
 Fim_Programa:
-    li $v0, 10
-    syscall
+    lw $v0, 0($sp)
+lw $t9,4($sp)
+lw $s6, 8($sp)
+lw $s5, 12($sp)
+lw $s4, 16($sp)
+lw $s3, 20($sp)
+lw $s2, 24($sp)
+lw $s1, 28($sp)
+lw $s0, 32($sp)
+lw $ra, 36($sp)
+addi $sp, $sp, 40
+    jr $ra
