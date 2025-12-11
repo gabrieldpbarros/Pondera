@@ -1,15 +1,13 @@
 .data
 instrucao_inicial:	.asciiz "------ Digite suas 4 tarefas ------\n"	
-texto_opcoes:	.asciiz "O que voce deseja fazer?"
-opcoes_post:	.asciiz "\n1: Proximo post\n2: Comentarios\n3: Perfil do autor\n4: Concluir tarefa\n5: Ver o tempo desde a ultima troca de post\n6: Sair\n"
+texto_opcoes:	.asciiz "\nO que voce deseja fazer?"
+opcoes_post:	.asciiz "\n1: Proximo post\n2: Comentarios\n3: Perfil do autor\n4: Concluir tarefa\n5: Sair\n------------------\n"
 mensagem_falta_task: 	.asciiz	"\nERRO: Voce deve completar uma tarefa para poder avancar.\n"
 mensagem_fim_tasks:	.asciiz	"\nERRO: Voce ja completou todas as tarefas do dia. Talvez seja uma boa ideia sair, nao?\n"
+mensagem_numero_fora: .asciiz "\nERRO: Digite um número de 1 a 5 para prosseguir com uma opção válida"
 posts_filename:	.asciiz "posts.txt"
 tasks_filename:	.asciiz "tasks.txt"
 breakline:	.asciiz "\n"
-time_buffer: .space 8	# Buffer para 64 bits (8 bytes) do tempo
-time_msg_prefix: .asciiz "\nTempo desde a ultima troca de post: "
-time_msg_sufix: .asciiz " segundos.\n"
 flag:	.byte 0
 ver_conclusao:	.byte 0	# marcador se podemos avancar para o proximo post
 qt_tasks:	.byte 0 # quantidade de tasks concluidas
@@ -18,24 +16,24 @@ qt_tasks:	.byte 0 # quantidade de tasks concluidas
 .globl main
 .globl main_loop
 main:
-	li, $s7, 0
+	li $s7, 0
 	li $v0, 4
 	la $a0, instrucao_inicial
 	syscall
 	
 	la $a0, tasks_filename
 	jal write_tasks
-	#jal record_post_time
 	# Quebra de linha para preservar a estética
 	li $v0, 4
 	la $a0, breakline
 	syscall
 	
+	# Chama o primeiro post sem precisar terminar tarefa
 	jal bmp1
 	jal main_post
 
 main_loop:
-	# LOOP QUE DESCREVE UMA ESCOLHA DE ATIVIDADE DO USUARIO (ir para um post, completar uma tarefa, etc)
+	# Loop que descreve a escolha de atividade do usuário (seguir para o próximo post, completar uma tarefa, etc)
 	li $v0, 4
 	la $a0, texto_opcoes
 	syscall
@@ -50,10 +48,13 @@ main_loop:
 	lb $t0, flag
 	beq $t0, 1, next_post
 	beq $t0, 2, comentarios
-	#beq $t0, 3, ver_autor
+	beq $t0, 3, ver_autor
 	beq $t0, 4, complete_task
-	#beq $t0, 5, show_time_since_last_post
-	beq $t0, 6, end_pondera
+	beq $t0, 5, end_pondera
+	
+	li $v0, 4
+	la $a0, mensagem_numero_fora
+	syscall
 	
 	j main_loop
 
