@@ -11,6 +11,23 @@ Projeto final da disciplina de Arquitetura e Organização de Computadores, base
 
 [^1]: https://www.nationalgeographicbrasil.com/ciencia/2025/01/veja-o-que-acontece-com-seu-cerebro-quando-voce-faz-uma-pausa-nas-redes-sociais
 
+#  Como executar
+
+1 - No mars, selecione as seguintes opções de settings. 
+
+    Assemble all files in directory
+
+    Initialize Program Counter to global "main" if defined
+
+2 - Nas opções de BitMap
+
+    
+
+<div align="center">
+    <img src="./assets/tutorial.png" alt="Logo PONDERA" width="380" height="210"/>
+</div
+
+
 # Ideia do projeto
 
 A proposta de projeto foi o desenvolvimento de um programa em Assembly MIPS que tenha alguma relação com a notícia fornecida pelo docente.

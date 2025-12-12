@@ -3,7 +3,7 @@
     prompt_id:  .asciiz "Digite o ID do post que deseja buscar: "
     not_found:  .asciiz "\nPost não encontrado.\n"
     newline:    .asciiz "\n"
-    temp_buffer: .space 256 # NOVO: Buffer temporário para copiar as linhas
+    temp_buffer: .space 256 # Buffer temporário para copiar as linhas
 
 .text
 .globl main_post
@@ -22,7 +22,7 @@ addi $sp, $sp, -16
 
 loop_posts:
     # 1. Ler o ID do post atual (primeira linha)
-    jal read_line           # NOVO: Retorna $a0 = endereço do buffer (com \0)
+    jal read_line           # Retorna $a0 = endereço do buffer (com \0)
 
     # Verifica o final da string (\0) no buffer
     lb $t0, 0($a0)
@@ -35,10 +35,10 @@ loop_posts:
     beq $t1, $s0, print_post        # Se ID atual == ID desejado, ir para impressão
 
     # 3. Se os IDs não forem iguais, pular para o próximo post
-    li $t2, 4                       # Pular Autor, Texto, Img ID, ---
+    li $t2, 4                       # Pular Autor, Texto, Img ID, 
     j skip_post_fields
 
-# --- Rotina para Pular os Campos do Post ---
+# Rotina para Pular os Campos do Post 
 skip_post_fields:
     beq $t2, $zero, loop_posts  # Pular 4 campos feitos, voltar ao loop principal
     subi $t2, $t2, 1
@@ -47,11 +47,11 @@ skip_post_fields:
     
     j skip_post_fields
 
-# --- Rotina para Imprimir o Post Encontrado ---
+# Rotina para Imprimir o Post Encontrado
 print_post:
-    li $t2, 4              # $t2 = Contador para as 4 linhas (autor, texto, img_id, ---)
+    li $t2, 4              # $t2 = Contador para as 4 linhas (autor, texto, img_id
 print_fields_loop:
-    beq $t2, $zero, fim_main_post_success # <--- NOVO LABEL DE SUCESSO
+    beq $t2, $zero, fim_main_post_success # Se deu sucesso
     subi $t2, $t2, 1
     
     jal read_line          # $a0 = endereço da linha lida (já com \0 no final)
@@ -65,18 +65,18 @@ print_fields_loop:
     
     j print_fields_loop
 
-# --- Rotina de Linha Não Encontrada ---
+# Rotina de Linha Não Encontrada 
 post_not_found:
     li $v0, 4
     la $a0, not_found
     syscall
     j exit_program
 
-# --- Rotina: Ler Linha e Atualizar Ponteiro ($s1) ---
+# Rotina: Ler Linha e Atualizar Ponteiro ($s1) 
 # Substitui o \n por \0 para permitir impressão isolada
-# Argumentos: $s1 = Ponteiro atual
+# Entrada: $s1 = Ponteiro atual
 # Retorna: $a0 = Endereço da linha lida
-#          $s1 = Ponteiro atualizado para a PRÓXIMA linha
+#          $s1 = Ponteiro atualizado para a proxima linha
 read_line:
     # Salva os registradores
     addi $sp, $sp, -8
@@ -107,7 +107,6 @@ finish_copy:
     # 2. Avança $s1 além do \n (o \n original permanece na string global!)
     addi $s1, $s1, 1         
     
-    # --- EPILOGUE de read_line ---
     lw $s3, 4($sp)
     lw $s2, 0($sp)
     addi $sp, $sp, 8
@@ -118,15 +117,14 @@ read_eos_copy:
     # 1. Termina a string no buffer com \0 (para garantir que seja imprimível)
     sb $zero, 0($s2)
     
-    # --- EPILOGUE de read_line ---
     lw $s3, 4($sp)
     lw $s2, 0($sp)
     addi $sp, $sp, 8
 
     jr $ra
 
-# --- Rotina: Conversão de ASCII para Inteiro (atoi) ---
-# Argumentos: $a0 = Endereço da string (o ID)
+# Rotina: Conversão de ASCII para Inteiro (atoi)
+# Entrada : $a0 = Endereço da string (o ID)
 # Retorna: $v0 = Valor inteiro
 atoi:
     li $v0, 0              # $v0 = Resultado
@@ -152,7 +150,7 @@ atoi_loop:
 atoi_end:
     jr $ra
 
-# --- Fim do Programa ---
+# Fim do Programa
 exit_program:
    # Restaura os registradores pra não quebrar o pc
     lw $s1, 8($sp)    
