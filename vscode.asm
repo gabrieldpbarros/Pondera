@@ -344,7 +344,6 @@ Finaliza_Desenho:
 lw $a3, 0($sp)
     lw $a2, 4($sp)
     lw $a1, 8($sp)
-    
     addi $sp, $sp, 12   # Desalocar o espa
     jr   $ra
     

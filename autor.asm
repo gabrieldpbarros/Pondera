@@ -13,7 +13,7 @@ Buffer_arquivo_autor:    .space 4096   # Buffer para guardar o conteúdo do arqui
 # $s0: File Descriptor (FD)
 # $s3: Comprimento do conteudo original do arquivo
 
-ver_autor: # 1 - Usuario digita o que quer fazer: 1: ler comentarios, 2: add comentario, 3: sair do programa
+ver_autor:
     # Salva os registradores importantes pra que os jal não quebrem o program counter
     addi $sp, $sp, -16
     sw $ra, 0($sp)
