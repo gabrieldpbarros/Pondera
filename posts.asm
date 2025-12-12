@@ -1,42 +1,41 @@
-.data
-    posts_data: .asciiz "0\njoserequena\nHoje comecei o projeto de rede social em Assembly MIPS!\nimg_001\n---\n1\nmaria\ntrabalhando no projeto da faculdade :)\nimg_002\n---\n2\nadmin\nBem-vindos à rede social feita em Assembly!\nimg_003\n---\n"
+posts_data: .asciiz "0\nJosé Requena\nFinalmente acabei meu projeto da bolsa de extensão, vejam o código!\n1\n---\n1\nEnzo Vidal\nBATI MEU RECORDE DE 3X3, 7.1 É INSANO, a solve completa esta no youtube\n2\n---\n2\nGabriel Delgado\nFiz um quadrinho do meu jogo favorito, mine é inspiração pra arte\n3\n---\n"
     prompt_id:  .asciiz "Digite o ID do post que deseja buscar: "
     not_found:  .asciiz "\nPost não encontrado.\n"
     newline:    .asciiz "\n"
+    temp_buffer: .space 256 # NOVO: Buffer temporário para copiar as linhas
 
 .text
 .globl main_post
 
 main_post:
-    # 1. Obter o ID do usuário
-    li $v0, 4              # syscall para printar string
-    la $a0, prompt_id      # carrega o prompt
-    syscall
-
-    li $v0, 5              # syscall para ler inteiro
-    syscall
-    move $s0, $v0          # $s0 = ID desejado (Target ID)
+# Mesma coisa de salvar os registradores importantes antes pra não quebrar o pc
+addi $sp, $sp, -16 
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+    move $s0, $s7          # $s0 = ID desejado (Target ID)
 
     # 2. Inicializar ponteiro da string
     la $s1, posts_data     # $s1 = ponteiro para a string posts_data
 
 loop_posts:
-    # Verifica o final da string (\0)
-    lb $t0, 0($s1)
-    beq $t0, $zero, post_not_found # Se byte = 0, fim da lista
+    # 1. Ler o ID do post atual (primeira linha)
+    jal read_line           # NOVO: Retorna $a0 = endereço do buffer (com \0)
 
-    # 3. Ler o ID do post atual (primeira linha)
-    jal read_line          # Lê a linha, retorna endereço em $a0
+    # Verifica o final da string (\0) no buffer
+    lb $t0, 0($a0)
+    beq $t0, $zero, post_not_found # Se buffer estiver vazio (fim da lista)
 
-    # 4. Comparar ID (string para int)
-    jal atoi               # Converte string ID para inteiro, $v0 = valor int
-    move $t1, $v0          # $t1 = ID do post atual (Current ID)
+    # 2. Comparar ID (string para int)
+    jal atoi                        # Converte string ID para inteiro, $v0 = valor int
+    move $t1, $v0                   # $t1 = ID do post atual (Current ID)
 
-    beq $t1, $s0, print_post # Se ID atual == ID desejado, ir para impressão
+    beq $t1, $s0, print_post        # Se ID atual == ID desejado, ir para impressão
 
-    # 5. Se os IDs não forem iguais, pular para o próximo post
-    # Precisamos pular as 4 linhas restantes (autor, texto, img_id, ---)
-    li $t2, 4              # $t2 = Contador para as 4 linhas restantes
+    # 3. Se os IDs não forem iguais, pular para o próximo post
+    li $t2, 4                       # Pular Autor, Texto, Img ID, ---
+
     j skip_post_fields
 
 # --- Rotina para Pular os Campos do Post ---
@@ -52,7 +51,6 @@ skip_post_fields:
 print_post:
     li $t2, 4              # $t2 = Contador para as 4 linhas (autor, texto, img_id, ---)
 print_fields_loop:
-    beq $t2, $zero, exit_program # Imprimiu tudo
     subi $t2, $t2, 1
     
     jal read_line          # $a0 = endereço da linha lida (já com \0 no final)
@@ -79,25 +77,52 @@ post_not_found:
 # Retorna: $a0 = Endereço da linha lida
 #          $s1 = Ponteiro atualizado para a PRÓXIMA linha
 read_line:
-    move $a0, $s1          # $a0 marca o início da string para retorno
-    
-read_char_loop:
-    lb $t3, 0($s1)         # Carrega o caractere
-    beq $t3, $zero, read_eos # Se for \0 (fim total da string data), retorna
-    
-    li $t4, 10             # Código ASCII para Line Feed (\n)
-    beq $t3, $t4, replace_nl # Encontrou \n, vai substituir
-    
-    addi $s1, $s1, 1       # Avança para próximo char
-    j read_char_loop
+    # Salva os registradores
+    addi $sp, $sp, -8
+    sw $s2, 0($sp)
+    sw $s3, 4($sp)
 
-replace_nl:
-    sb $zero, 0($s1)       # Substitui \n por \0 (IMPORTANTE PARA O SYSCALL 4)
-    addi $s1, $s1, 1       # Avança $s1 para o início da próxima linha
-    jr $ra                 # Retorna
+    la $s2, temp_buffer             # $s2 é o endereço de destino (buffer)
+    move $a0, $s2                   # $a0 = endereço de retorno (buffer)
+    
+read_char_loop_copy:
+    lb $t3, 0($s1)                  # Carrega o caractere da fonte ($s1)
+    
+    beq $t3, $zero, read_eos_copy   # Fim da string global
+    
+    li $t4, 10                      # Código ASCII para Line Feed (\n)
+    beq $t3, $t4, finish_copy       # Encontrou \n
 
-read_eos:
-    jr $ra                 # Retorna sem avançar (já está no fim)
+    # Copia o caractere
+    sb $t3, 0($s2)           
+    addi $s1, $s1, 1                # Avança ponteiro fonte
+    addi $s2, $s2, 1                # Avança ponteiro destino
+    j read_char_loop_copy
+
+finish_copy:
+    # 1. Termina a string no buffer com \0
+    sb $zero, 0($s2)         
+    
+    # 2. Avança $s1 além do \n (o \n original permanece na string global!)
+    addi $s1, $s1, 1         
+    
+    # --- EPILOGUE de read_line ---
+    lw $s3, 4($sp)
+    lw $s2, 0($sp)
+    addi $sp, $sp, 8
+    
+    jr $ra                   
+    
+read_eos_copy:
+    # 1. Termina a string no buffer com \0 (para garantir que seja imprimível)
+    sb $zero, 0($s2)
+    
+    # --- EPILOGUE de read_line ---
+    lw $s3, 4($sp)
+    lw $s2, 0($sp)
+    addi $sp, $sp, 8
+
+    jr $ra
 
 # --- Rotina: Conversão de ASCII para Inteiro (atoi) ---
 # Argumentos: $a0 = Endereço da string (o ID)
@@ -128,5 +153,19 @@ atoi_end:
 
 # --- Fim do Programa ---
 exit_program:
-    li $v0, 10
-    syscall
+   # Restaura os registradores pra não quebrar o pc
+    lw $s1, 8($sp)    
+    lw $s0, 4($sp)    
+    lw $ra, 0($sp)   
+    addi $sp, $sp, 12 # Libera a pilha
+
+    jr $ra # Retorna para o next_post (ou main_loop)
+fim_main_post_success:
+# Restaura os registradores pra não quebrar o pc
+    lw $s1, 8($sp)   
+    lw $s0, 4($sp)    
+    lw $ra, 0($sp)   
+    addi $sp, $sp, 12 # Libera a pilha 
+
+    jr $ra # Retorna para o next_post (ou main_loop)
+    jr $ra # Retorna para o chamador (main)
