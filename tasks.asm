@@ -321,7 +321,7 @@ error_flag:
 	tarefa:	.asciiz "Tarefa "
 	dois_pontos:	.asciiz ": "
 	mensagem_tarefas:	.asciiz "Tarefas atuais:"
-	mensagem_apagar:	.asciiz "Qual tarefa deseja apagar?"
+	mensagem_apagar:	.asciiz "Qual tarefa deseja apagar? (Digite o numero da tarefa que quer concluir 1. 2. 3 ou 4)"
 	prefixo_incompleta:	.asciiz	"[ ] "
 	prefixo_completa:	.asciiz "[X] "
 	flag_arquivo:	.asciiz "0\n"	# utilizamos para salvar flags de incompleta no arquivo de tasks
