@@ -19,14 +19,19 @@ Projeto final da disciplina de Arquitetura e Organização de Computadores, base
 
     Initialize Program Counter to global "main" if defined
 
-2 - Nas opções de BitMap
-
-    
-
 <div align="center">
     <img src="./assets/tutorial.png" alt="Logo PONDERA" width="380" height="210"/>
 </div>
 
+2 - Nas opções de BitMap
+
+    unit width e unit height ambas como 8
+    
+    display width em 512
+    
+    display height em 256
+    
+    base adress como 0x10040000 (heap).
 
 # Ideia do projeto
 
