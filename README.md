@@ -25,7 +25,7 @@ Projeto final da disciplina de Arquitetura e Organização de Computadores, base
 
 <div align="center">
     <img src="./assets/tutorial.png" alt="Logo PONDERA" width="380" height="210"/>
-</div
+</div>
 
 
 # Ideia do projeto
